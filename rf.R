@@ -5,15 +5,6 @@
 ## Author: Kazuki Yoshida
 ################################################################################
 
-library(mvpart)
-library(plyr)
-
-data(iris)
-trainIndices <- sample(nrow(iris), size = 100)
-irisTrain <- iris[trainIndices,]
-irisTest  <- iris[-1*trainIndices,]
-
-
 
 ### A function to create one tree
 CreateTree <- function(xs,y) {
@@ -32,11 +23,6 @@ CreateTree <- function(xs,y) {
     ## Create a tree
     rpart(formula = form1, data = dat)
 }
-
-## test code
-myTree <- CreateTree(iris[1:3],iris$Species)
-predict(myTree, type = "class", newdata = iris)
-predict(myTree, type = "prob", newdata = iris)
 
 
 ### A function to create M trees
@@ -68,11 +54,8 @@ CreateForest <- function(xs, y, numberOfTrees) {
     treesList
 }
 
-## test code
-myTrees <- CreateForest(xs = irisTrain[,1:4], y = irisTrain$Species, 10)
 
-
-### A function to predict 
+### A function to predict for a given dataset
 predict.MyRandomForest <- function(object, newdata) {
 
     listOfProbMat <- lapply(object, function(obj) {
@@ -81,7 +64,7 @@ predict.MyRandomForest <- function(object, newdata) {
     })
 
     ## list -> array
-    arrayOfProbs <- laply(listOfProbMat, .fun = function(x) {x})
+    arrayOfProbs <- plyr::laply(listOfProbMat, .fun = function(x) {x})
 
     ## mean of all trees
     meanMat <- apply(arrayOfProbs, MARGIN = c(2,3), mean)
@@ -89,6 +72,3 @@ predict.MyRandomForest <- function(object, newdata) {
     ## Pick names as predicted class
     colnames(meanMat)[apply(meanMat, 1, which.max)]
 }
-
-
-xtabs( ~ predict(myTrees, newdata = irisTest) + irisTest$Species)
